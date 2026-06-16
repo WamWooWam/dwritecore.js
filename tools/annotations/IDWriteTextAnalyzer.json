@@ -1,0 +1,12 @@
+{
+  "_doc": "IDWriteTextAnalyzer (most-derived IDWriteTextAnalyzer2). The hand subclass IDWriteTextAnalyzer.ts adds the low-level shaping + justification pipeline. getGlyphs/getGlyphPlacements/getGdiCompatibleGlyphPlacements are auto-dropped by the emitter (const DWRITE_TYPOGRAPHIC_FEATURES ** param it can't lower); the justification methods are skipped here because they pass several parallel glyphCount-sized in/out arrays the emitter mis-lowers as single-element structs (under-allocating the out buffers). The *_PROPERTIES buffers are passed through as raw packed UINT16 arrays (the native bit-field layout).",
+
+  "IDWriteTextAnalyzer.GetGlyphs": { "kind": "skip", "_why": "hand getGlyphs(textString, scriptAnalysis, fontFace, opts): allocates parallel out arrays (clusterMap/textProps/glyphIndices/glyphProps) and grows on E_NOT_SUFFICIENT_BUFFER; const DWRITE_TYPOGRAPHIC_FEATURES ** is unsupported by the emitter" },
+  "IDWriteTextAnalyzer.GetGlyphPlacements": { "kind": "skip", "_why": "hand getGlyphPlacements(args): parallel in/out arrays sharing glyphCount; same unsupported feature-array param" },
+  "IDWriteTextAnalyzer.GetGdiCompatibleGlyphPlacements": { "kind": "skip", "_why": "hand getGdiCompatibleGlyphPlacements(args): same as getGlyphPlacements plus pixelsPerDip/transform/useGdiNatural" },
+
+  "IDWriteTextAnalyzer.ApplyCharacterSpacing": { "kind": "skip", "_why": "hand applyCharacterSpacing(args): parallel glyphCount-sized in/out arrays; emitter mis-lowers the out arrays as single elements and overflows the buffer" },
+  "IDWriteTextAnalyzer.GetJustificationOpportunities": { "kind": "skip", "_why": "hand getJustificationOpportunities(args): glyphCount-sized DWRITE_JUSTIFICATION_OPPORTUNITY out array mis-lowered as a single struct" },
+  "IDWriteTextAnalyzer.JustifyGlyphAdvances": { "kind": "skip", "_why": "hand justifyGlyphAdvances(args): parallel glyphCount-sized in/out arrays mis-lowered as single elements" },
+  "IDWriteTextAnalyzer.GetJustifiedGlyphs": { "kind": "skip", "_why": "hand getJustifiedGlyphs(args): parallel in/out arrays + maxGlyphCount/actualGlyphCount growth; emitter mis-lowers and overflows" }
+}

@@ -1,0 +1,4 @@
+{
+  "_doc": "IDWriteFontFile. The hand subclass IDWriteFontFile.ts keeps analyze() with friendly field names (isSupported/fileType/faceType/numberOfFaces); getReferenceKey + getLoader come from the generated base.",
+  "IDWriteFontFile.Analyze": { "kind": "skip", "_why": "hand analyze() returns {isSupported, fileType, faceType, numberOfFaces} (friendlier names than the raw param-derived shape); IDWriteFactory.loadFontFace depends on it" }
+}

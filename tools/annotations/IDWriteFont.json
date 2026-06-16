@@ -1,0 +1,12 @@
+{
+  "_doc": "Annotation sidecar for IDWriteFont (most-derived IDWriteFont3). Keyed by <Interface>.<slotKey> where slotKey is the generated enum member (version-suffixed for overloads). Only deviations from the emitter defaults are listed; scalar getters, object/struct-out methods, and JS names are inferred.",
+
+  "IDWriteFont.GetMetrics1": { "name": "getMetrics1", "return": { "struct": "DWRITE_FONT_METRICS1" }, "_why": "richer metrics; DWRITE_FONT_METRICS1 now generated (derived struct)" },
+  "IDWriteFont.GetPanose": { "kind": "skip", "_why": "DWRITE_PANOSE has an unnamed nested struct; no reader yet" },
+  "IDWriteFont.GetFontFaceReference": { "kind": "skip", "_why": "IDWriteFontFaceReference is not wrapped yet" },
+
+  "IDWriteFont.HasCharacter": { "kind": "skip", "_why": "keep the simpler IDWriteFont3 HasCharacter (slot 22, direct BOOL) instead of the HRESULT+exists overload (slot 12)" },
+  "IDWriteFont.CreateFontFace": { "kind": "skip", "_why": "keep the IDWriteFont3 CreateFontFace (slot 19) returning the most-derived face" },
+
+  "IDWriteFont.CreateFontFace3": { "wrap": "IDWriteFontFace", "_why": "the out param is IDWriteFontFace3**, but our single most-derived face wrapper is IDWriteFontFace" }
+}

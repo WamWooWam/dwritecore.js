@@ -1,0 +1,5 @@
+{
+  "_doc": "IDWriteColorGlyphRunEnumerator (most-derived IDWriteColorGlyphRunEnumerator1). The hand subclass IDWriteColorGlyphRunEnumerator.ts adds getCurrentRun()/getCurrentRun1(); moveNext comes from the generated base. Both GetCurrentRun overloads are already auto-dropped (const DWRITE_COLOR_GLYPH_RUN(1) ** out-param the emitter can't lower); the skips make that explicit.",
+  "IDWriteColorGlyphRunEnumerator.GetCurrentRun": { "kind": "skip", "_why": "hand getCurrentRun() reads the enumerator-owned DWRITE_COLOR_GLYPH_RUN (core/color.ts)" },
+  "IDWriteColorGlyphRunEnumerator.GetCurrentRun1": { "kind": "skip", "_why": "hand getCurrentRun1() reads DWRITE_COLOR_GLYPH_RUN1 (v1 image-format/measuring-mode fields)" }
+}

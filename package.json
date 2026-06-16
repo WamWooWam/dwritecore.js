@@ -1,0 +1,35 @@
+{
+  "name": "dwritecore.js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./node": "./dist/src/host/node.js",
+    "./browser": "./dist/src/host/browser.js",
+    "./util": "./dist/src/util/index.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "gen": "node --max-old-space-size=6144 tools/gen-bindings.mjs",
+    "gen:class": "node tools/gen-bindings.mjs --emit-class",
+    "gen:classes": "node tools/gen-bindings.mjs --emit-class IDWriteAsyncResult,IDWriteBitmapRenderTarget,IDWriteColorGlyphRunEnumerator,IDWriteFactory,IDWriteFont,IDWriteFontCollection,IDWriteFontCollectionLoader,IDWriteFontDownloadListener,IDWriteFontDownloadQueue,IDWriteFontFace,IDWriteFontFaceReference,IDWriteFontFallback,IDWriteFontFallbackBuilder,IDWriteFontFamily,IDWriteFontFile,IDWriteFontFileEnumerator,IDWriteFontFileLoader,IDWriteFontFileStream,IDWriteFontList,IDWriteFontResource,IDWriteFontSet,IDWriteFontSetBuilder,IDWriteGdiInterop,IDWriteGlyphRunAnalysis,IDWriteInMemoryFontFileLoader,IDWriteInlineObject,IDWriteLocalFontFileLoader,IDWriteLocalizedStrings,IDWriteNumberSubstitution,IDWritePaintReader,IDWritePixelSnapping,IDWriteRemoteFontFileLoader,IDWriteRemoteFontFileStream,IDWriteRenderingParams,IDWriteStringList,IDWriteTextAnalysisSink,IDWriteTextAnalysisSource,IDWriteTextAnalyzer,IDWriteTextFormat,IDWriteTextLayout,IDWriteTextRenderer,IDWriteTypography",
+    "patch": "node tools/patch-exports.mjs",
+    "test": "node dist/test/run-all.js",
+    "pretest": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "typescript": "^5.9.3"
+  }
+}

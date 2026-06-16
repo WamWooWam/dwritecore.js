@@ -1,0 +1,8 @@
+{
+  "_doc": "IDWriteBitmapRenderTarget (most-derived IDWriteBitmapRenderTarget3). The hand subclass IDWriteBitmapRenderTarget.ts keeps the ergonomic draw* helpers (opts object + a correctly-sized 16-byte blackBox RECT). The transform/size/antialias accessors, getBitmapData and paintFeatureLevel come from the generated base.",
+
+  "IDWriteBitmapRenderTarget.DrawGlyphRun": { "kind": "skip", "_why": "hand drawGlyphRun(opts); the generated blackBoxRect out-param under-allocates the 16-byte RECT to 4 bytes (native would overflow it)" },
+  "IDWriteBitmapRenderTarget.DrawGlyphRunWithColorSupport": { "kind": "skip", "_why": "hand drawGlyphRunWithColorSupport(opts); same blackBoxRect under-allocation" },
+  "IDWriteBitmapRenderTarget.DrawPaintGlyphRun": { "kind": "skip", "_why": "deferred with the rest of the COLRv1 paint-tree surface (IDWritePaintReader). blackBoxRect under-allocates the 16-byte RECT to 4 bytes, and the paint API traps DWriteCore unless the glyph run is pre-filtered to a paint-tree format the font actually has; needs a hand wrapper + a COLRv1 test font" },
+  "IDWriteBitmapRenderTarget.GetSize": { "kind": "skip", "_why": "out SIZE* is an 8-byte struct (unmodeled), mis-lowered to a 4-byte out-scalar returning only cx" }
+}

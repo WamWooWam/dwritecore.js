@@ -1,0 +1,10 @@
+{
+    "IDWriteGdiInterop.CreateFontFromLOGFONT": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.ConvertFontToLOGFONT": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.ConvertFontFaceToLOGFONT": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.CreateFontFaceFromHdc": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.CreateFontFromLOGFONT1": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.GetFontSignature": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},   
+    "IDWriteGdiInterop.GetMatchingFontsByLOGFONT": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"},
+    "IDWriteGdiInterop.GetFontSignature1": { "kind": "skip", "_why": "No real GDI support in DirectWriteCore, these probably dont do anything"} 
+}

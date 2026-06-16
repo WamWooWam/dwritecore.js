@@ -1,0 +1,5 @@
+{
+  "_doc": "IDWriteFontList (most-derived IDWriteFontList2). Wrap overrides point out-objects at our most-derived hand/generated wrappers.",
+  "IDWriteFontList.GetFont1": { "wrap": "IDWriteFont" },
+  "IDWriteFontList.GetFontSet": { "wrap": "IDWriteFontSet" }
+}

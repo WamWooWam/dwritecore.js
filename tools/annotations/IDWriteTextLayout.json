@@ -1,0 +1,5 @@
+{
+  "_doc": "Annotation sidecar for IDWriteTextLayout. The hand subclass IDWriteTextLayout.ts adds the convenience layer (draw, getFontWeightAt, getFontAxisValuesAt, nullable fontFallback accessor) over this generated base.",
+
+  "IDWriteTextLayout.Draw": { "kind": "skip", "_why": "clientDrawingContext is void* (an opaque INPUT, normally 0), the heuristic mis-lowers it to an out-scalar. The hand subclass provides draw(renderer, originX?, originY?)." }
+}

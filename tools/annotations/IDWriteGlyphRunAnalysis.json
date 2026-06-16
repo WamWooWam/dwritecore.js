@@ -1,0 +1,5 @@
+{
+  "_doc": "IDWriteGlyphRunAnalysis. The hand subclass IDWriteGlyphRunAnalysis.ts keeps the RECT-bounds + alpha-texture helpers (the generic emitter can't size a RECT out-param or a bounds-sized byte buffer). getAlphaBlendParams comes from the generated base.",
+  "IDWriteGlyphRunAnalysis.GetAlphaTextureBounds": { "kind": "skip", "_why": "out RECT* is a 16-byte struct (Win32 RECT is unmodeled), mis-lowered to a 4-byte out-scalar; hand getAlphaTextureBounds returns a RECT" },
+  "IDWriteGlyphRunAnalysis.CreateAlphaTexture": { "kind": "skip", "_why": "out BYTE* alphaValues is a bounds-sized buffer, mis-lowered to a single scalar; hand createAlphaTexture sizes it from the bounds and returns the pixel data" }
+}

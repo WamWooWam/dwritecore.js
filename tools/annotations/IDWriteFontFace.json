@@ -1,0 +1,17 @@
+{
+  "_doc": "IDWriteFontFace (most-derived IDWriteFontFace7). The hand subclass IDWriteFontFace.ts keeps the per-glyph array helpers and the fontAxisValues accessor. Skips below are methods the generic emitter mis-lowers: each takes a glyph-index input array of length glyphCount and writes a PARALLEL OUTPUT array of the same length, but the emitter treats the output pointer as a single out element (returning only the first). They need the parallel-output-array pattern (same root cause as the IDWriteTextAnalyzer shaping methods) or a hand wrapper.",
+
+  "IDWriteFontFace.GetGlyphIndices": { "kind": "skip", "_why": "out UINT16* glyphIndices is an array of glyphCount; hand getGlyphIndices returns number[]" },
+  "IDWriteFontFace.GetDesignGlyphMetrics": { "kind": "skip", "_why": "out DWRITE_GLYPH_METRICS* is an array of glyphCount; hand getDesignGlyphMetrics returns DWRITE_GLYPH_METRICS[]" },
+
+  "IDWriteFontFace.GetDesignGlyphAdvances": { "kind": "skip", "_why": "out INT32* glyphAdvances is an array of glyphCount, mis-lowered to a single number" },
+  "IDWriteFontFace.GetGdiCompatibleGlyphAdvances": { "kind": "skip", "_why": "out INT32* glyphAdvances is an array of glyphCount, mis-lowered to a single number" },
+  "IDWriteFontFace.GetGdiCompatibleGlyphMetrics": { "kind": "skip", "_why": "out DWRITE_GLYPH_METRICS* is an array of glyphCount, mis-lowered to a single struct" },
+  "IDWriteFontFace.GetKerningPairAdjustments": { "kind": "skip", "_why": "out INT32* glyphAdvanceAdjustments is an array of glyphCount, mis-lowered to a single number" },
+  "IDWriteFontFace.GetPaletteEntries": { "kind": "skip", "_why": "hand getPaletteEntries(paletteIndex, first, count) returns DWRITE_COLOR_F[] (core/color.ts); the generated one mis-lowers the entryCount array to a single scalar" },
+  "IDWriteFontFace.GetPanose": { "kind": "skip", "_why": "hand getPanose() returns the raw 10-byte Uint8Array; DWRITE_PANOSE has an unnamed nested union the struct emitter skips" },
+  "IDWriteFontFace.GetGlyphImageData": { "kind": "skip", "_why": "hand getGlyphImageData(glyphId, ppem, format) reads the struct (core/color.ts), copies the bytes, and calls ReleaseGlyphImageData; the void** context + nested D2D types can't be lowered" },
+  "IDWriteFontFace.GetVerticalGlyphVariants": { "kind": "skip", "_why": "out UINT16* verticalGlyphIndices is an array of glyphCount, mis-lowered to a single number" },
+
+  "IDWriteFontFace.GetGlyphRunOutline": { "kind": "skip", "_why": "leading FLOAT emSize + parallel glyphIndices/glyphAdvances/glyphOffsets arrays sharing one glyphCount; the emitter drops emSize and sources the count from the offsets array. Hand getGlyphRunOutline(emSize, glyphIndices, sink, opts) passes the slot args in the correct order." }
+}

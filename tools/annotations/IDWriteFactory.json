@@ -1,0 +1,17 @@
+{
+  "_doc": "Annotation sidecar for IDWriteFactory (most-derived IDWriteFactory8). The hand subclass IDWriteFactory.ts keeps the ergonomic convenience layer over this generated base. Skips below are methods the hand subclass re-expresses with a friendlier signature, or that the generic emitter can't lower safely.",
+
+  "IDWriteFactory.CreateTextFormat": { "kind": "skip", "_why": "hand createTextFormat(name, opts), defaults for collection/weight/style/stretch/size/locale" },
+  "IDWriteFactory.CreateTextFormat6": { "kind": "skip", "_why": "skipped so the bare createTextFormat name stays free for the hand ergonomic version (otherwise this axis-values variant would claim it); re-add by hand if variable-axis text formats are needed" },
+  "IDWriteFactory.CreateGdiCompatibleTextLayout": { "kind": "skip", "_why": "hand version defaults pixelsPerDip/useGdiNatural and passes a null transform (the generated one requires a DWRITE_MATRIX)" },
+  "IDWriteFactory.CreateCustomRenderingParams": { "kind": "skip", "_why": "hand createCustomRenderingParams(opts) with sensible gamma/contrast/clearType/geometry/mode defaults" },
+  "IDWriteFactory.CreateCustomRenderingParams1": { "kind": "skip", "_why": "skipped so the bare createCustomRenderingParams name stays free for the hand version (the grayscale variant would otherwise claim it)" },
+  "IDWriteFactory.CreateCustomRenderingParams2": { "kind": "skip", "_why": "skipped so the bare createCustomRenderingParams name stays free for the hand version (the grid-fit variant would otherwise claim it)" },
+  "IDWriteFactory.CreateCustomRenderingParams3": { "kind": "skip", "_why": "skipped so the bare createCustomRenderingParams name stays free for the hand version" },
+  "IDWriteFactory.CreateFontFileReference": { "kind": "skip", "_why": "hand createFontFileReference(filePath), single absolute WASI path, no lastWriteTime array" },
+  "IDWriteFactory.CreateFontFace": { "kind": "skip", "_why": "hand createFontFace(type, files[], faceIndex?, sims?) takes the file array ergonomically; the generated one mis-lowers the IDWriteFontFile** array to a single out-object" },
+
+  "IDWriteFactory.CreateGlyphRunAnalysis": { "kind": "skip", "_why": "the analysis references the glyph run until CreateAlphaTexture, so the run must outlive the call, the hand version allocates it persistently (the generated `using s` scope would free it early)" },
+  "IDWriteFactory.CreateGlyphRunAnalysis2": { "kind": "skip", "_why": "same run-lifetime hazard as CreateGlyphRunAnalysis" },
+  "IDWriteFactory.CreateGlyphRunAnalysis3": { "kind": "skip", "_why": "same run-lifetime hazard as CreateGlyphRunAnalysis" }
+}

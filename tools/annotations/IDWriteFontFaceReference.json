@@ -1,0 +1,6 @@
+{
+  "_doc": "IDWriteFontFaceReference (most-derived IDWriteFontFaceReference1). CreateFontFace overloads return IDWriteFontFace3**/IDWriteFontFace**, wrapped as our single most-derived IDWriteFontFace.",
+  "IDWriteFontFaceReference.CreateFontFace": { "wrap": "IDWriteFontFace" },
+  "IDWriteFontFaceReference.CreateFontFaceWithSimulations": { "wrap": "IDWriteFontFace" },
+  "IDWriteFontFaceReference.CreateFontFace1": { "wrap": "IDWriteFontFace" }
+}
