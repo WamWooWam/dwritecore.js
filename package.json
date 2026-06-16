@@ -11,7 +11,8 @@
     "./util": "./dist/src/util/index.js"
   },
   "files": [
-    "dist/src"
+    "dist/src",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
