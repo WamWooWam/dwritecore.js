@@ -122,8 +122,8 @@ using format = factory.createTextFormat("Segoe UI", { fontSize: 16, fontCollecti
 using layout = factory.createTextLayout("Hello, world!", format, 400, 200);
 
 // set some range properties
-layout.setFontWeight(DWRITE_FONT_WEIGHT.BOLD, { start: 0, length: 5 });
-layout.setUnderline(true, { start: 7, length: 5 });
+layout.setFontWeight(DWRITE_FONT_WEIGHT.BOLD, { startPosition: 0, length: 5 });
+layout.setUnderline(true, { startPosition: 7, length: 5 });
 
 // draw!
 using ctx = new TextCanvas(factory, canvas.getContext("2d"));
