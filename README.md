@@ -28,8 +28,8 @@ ctx.drawLayout(layout, { color: [0,0,0,1] });
     - A tool to patch modules that don't directly export DWriteCoreCreateFactory is included in `tools/patch-exports.mjs`.
 - The wrapper assumes this is a WASI module, so to use it in a browser you will need to provide an appropriate implementation. The Node wrappers handle this for you using `node:wasi`.
 - This module makes extensive use of the [Explicit Resource Management](https://tc39.es/proposal-explicit-resource-management/) language feature, and is far easier to use with it, so modern versions of Node.js/Chrome/Firefox are required. At the time of writing WebKit does not appear to have support, so you'll need a shim (I heard the author of core-js is still looking for a good job).
-- It's been tested in Node, Chrome and Firefox, + Safari with shims.
-- It has not been tested in Bun or Deno, nor any other constrained environments (Cloudflare Workers, etc.).
+- It **has** been tested in Node, Chrome and Firefox, + Safari with shims.
+- It has **not** been tested in Bun or Deno, nor any other constrained environments (Cloudflare Workers, etc.).
 
 ## Mapping/Projection notes
 - All interfaces have been flattened, i.e. `IDWriteFactory`, `IDWriteFactory1`, `IDWriteFactory2`... -> `IDWriteFactory`.
