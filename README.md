@@ -19,8 +19,9 @@ format.wordWrapping = DWRITE_WORD_WRAPPING.NO_WRAP;
 using layout = factory.createTextLayout("Hello, world!", format, 500, 500);
 
 // draw to a <canvas>!
-using ctx = new TextCanvas(factory, canvas.getContext("2d"));
-ctx.drawLayout(layout, { color: [0,0,0,1] });
+const ctx = canvas.getContext("2d");
+using renderer = new BasicTextRenderer(factory, canvas, ctx);
+layout.draw(renderer, 0, 0);
 ```
 
 ## Using the module
@@ -126,8 +127,9 @@ layout.setFontWeight(DWRITE_FONT_WEIGHT.BOLD, { startPosition: 0, length: 5 });
 layout.setUnderline(true, { startPosition: 7, length: 5 });
 
 // draw!
-using ctx = new TextCanvas(factory, canvas.getContext("2d"));
-ctx.drawLayout(layout, { color: [0, 0, 0, 1] });
+const ctx = canvas.getContext("2d");
+using renderer = new BasicTextRenderer(factory, canvas, ctx);
+layout.draw(renderer, 0, 0);
 ```
 
 ### Layout (Emoji fallback)
@@ -145,8 +147,9 @@ using layout = factory.createTextLayout("Hi there 👋! We can mix emoji and tex
 layout.fontFallback = fallback;
 
 // draw!
-using ctx = new TextCanvas(factory, canvas.getContext("2d"));
-ctx.drawLayout(layout, { color: [0, 0, 0, 1], colorGlyphs: true });
+const ctx = canvas.getContext("2d");
+using renderer = new BasicTextRenderer(factory, canvas, ctx, { colorGlyphs: true });
+layout.draw(renderer, 0, 0);
 ```
 
 ### Rendering options (aliased text)
@@ -161,9 +164,10 @@ using layout = factory.createGdiCompatibleTextLayout(
   body, 520, 160, 1, false,
 );
 
-// pass `params` to TextCanvas so it's used when drawing!!
-using ctx = new TextCanvas(factory, canvas.getContext("2d"), params);
-ctx.drawLayout(layout, { x: 10, y: 10, color: [0, 0, 0, 1] });
+// pass `params` to the renderer so it's used when drawing!!
+const ctx = canvas.getContext("2d");
+using renderer = new BasicTextRenderer(factory, canvas, ctx, { renderingParams: params });
+layout.draw(renderer, 10, 10);
 ```
 
 ## Codegen

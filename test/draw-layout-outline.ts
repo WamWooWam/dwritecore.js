@@ -1,6 +1,6 @@
 // TextCanvas.drawLayoutOutline: a whole IDWriteTextLayout painted as VECTOR outlines. The layout's
-// own Draw is driven through an OutlineTextRenderer, so mixed fonts/sizes, per-range formatting,
-// wrapping and underlines all collapse into a single fillable/strokable canvas path - exercising
+// own Draw is driven through a CanvasPathTextRenderer ({ fill, stroke }), so mixed fonts/sizes,
+// per-range formatting, wrapping and underlines all get filled/stroked as canvas paths - exercising
 // the IDWriteTextRenderer COM callback in the *outline* direction across multiple runs.
 import { createCanvas } from "@napi-rs/canvas";
 import { snapshot } from "./harness.js";

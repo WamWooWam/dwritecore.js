@@ -1,13 +1,23 @@
 import { loadNode } from "../src/host/node.js";
 import { DWriteCoreCreateFactory } from "../src/index.js";
-import { TextRenderer } from "../src/util/text-renderer.js";
+import { TextRendererBase } from "../src/util/text-renderer.js";
 import { callMethod } from "../src/core/com.js";
 import { IID_IDWriteTextRenderer, IID_IUnknown, IID_IDWriteFactory } from "../src/core/iids.js";
 import { Guid } from "../src/core/guid.js";
+import type { Abi } from "../src/core/abi.js";
 
 const { abi } = await loadNode({ wasmPath: "./linelayout-core.patched.wasm" });
 using factory = DWriteCoreCreateFactory(abi);
 void factory;
+
+// Minimal concrete IDWriteTextRenderer for exercising the ComObject vtable plumbing (QI, refcounts,
+// shared per-interface trampolines, per-instance routing). Carries one piece of per-instance state -
+// pixelsPerDip - so dispatch routing can be observed.
+class Probe extends TextRendererBase {
+  ppd = 1;
+  constructor(abi: Abi) { super(abi); }
+  protected override getPixelsPerDip(): number { return this.ppd; }
+}
 
 const QI = 0, AddRef = 1, Release = 2;
 
@@ -19,7 +29,7 @@ function qi(ptr: number, iid: Guid): { hr: number; out: number } {
 }
 
 // --- QI + refcount semantics --------------------------------------------------------
-const r = new TextRenderer(abi);
+const r = new Probe(abi);
 
 const okText = qi(r.ptr, IID_IDWriteTextRenderer);
 const okUnk = qi(r.ptr, IID_IUnknown);
@@ -43,7 +53,7 @@ r[Symbol.dispose](); // owner ref -> 0 -> cleanup
 // table stays flat no matter how many renderers are created OR live concurrently.
 const lenAfterFirst = abi.table.length;
 for (let i = 0; i < 50; i++) {
-  const t = new TextRenderer(abi);
+  const t = new Probe(abi);
   t[Symbol.dispose]();
 }
 const lenAfterMany = abi.table.length;
@@ -51,7 +61,7 @@ console.log(`table: ${lenAfterFirst} after 1st -> ${lenAfterMany} after +50 cycl
 console.log(lenAfterFirst === lenAfterMany ? "SHARED VTABLE (table flat)" : "table GREW, sharing broken");
 
 // Many concurrent instances must NOT grow the table, they all share the one interface vtable.
-const live = Array.from({ length: 8 }, () => new TextRenderer(abi));
+const live = Array.from({ length: 8 }, () => new Probe(abi));
 const lenManyLive = abi.table.length;
 for (const t of live) t[Symbol.dispose]();
 console.log(`8 concurrent live -> table ${lenManyLive} (still flat: ${lenManyLive === lenAfterFirst})`);
@@ -67,10 +77,10 @@ function pixelsPerDip(ptr: number): number {
   callMethod(abi, ptr, GetPixelsPerDip, 0, out);
   return abi.readF32(out);
 }
-const r1 = new TextRenderer(abi);
-const r2 = new TextRenderer(abi);
-(r1 as unknown as { current: { pixelsPerDip: number } }).current = { pixelsPerDip: 2 };
-(r2 as unknown as { current: { pixelsPerDip: number } }).current = { pixelsPerDip: 3 };
+const r1 = new Probe(abi);
+const r2 = new Probe(abi);
+r1.ppd = 2;
+r2.ppd = 3;
 const p1 = pixelsPerDip(r1.ptr), p2 = pixelsPerDip(r2.ptr);
 console.log(`routing: r1 -> ${p1} (expect 2), r2 -> ${p2} (expect 3) ${p1 === 2 && p2 === 3 ? "OK" : "FAIL"}`);
 r1[Symbol.dispose](); r2[Symbol.dispose]();

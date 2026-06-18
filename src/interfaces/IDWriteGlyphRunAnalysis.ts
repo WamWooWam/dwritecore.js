@@ -25,6 +25,19 @@ export class IDWriteGlyphRunAnalysis extends IDWriteGlyphRunAnalysisBase {
   }
 
   createAlphaTexture(type: DWRITE_TEXTURE_TYPE, bounds = this.getAlphaTextureBounds(type)): AlphaTexture {
+    const width = bounds.right - bounds.left;
+    const height = bounds.bottom - bounds.top;
+    const bytesPerPixel = type === DWRITE_TEXTURE_TYPE.CLEARTYPE_3x1 ? 3 : 1;
+    // .slice() copies the coverage out of wasm so it outlives the scratch buffer.
+    const data = this.withAlphaTexture(type, bounds, (cov) => cov.slice());
+    return { bounds, width, height, bytesPerPixel, data };
+  }
+
+  // Render the coverage for `bounds` into wasm scratch and hand a transient Uint8Array VIEW of it to
+  // `consume` (valid only for the synchronous call - the scratch is freed when this returns). Lets a
+  // hot caller read coverage straight from wasm into its own buffer without the per-run intermediate
+  // Uint8Array.slice() that createAlphaTexture otherwise allocates.
+  withAlphaTexture<T>(type: DWRITE_TEXTURE_TYPE, bounds: RECT, consume: (coverage: Uint8Array) => T): T {
     using s = this.abi.scope();
     const width = bounds.right - bounds.left;
     const height = bounds.bottom - bounds.top;
@@ -39,6 +52,6 @@ export class IDWriteGlyphRunAnalysis extends IDWriteGlyphRunAnalysisBase {
 
     const buf = s.allocZeroed(size || 1);
     checkHr(this.invoke(Slot.CreateAlphaTexture, type, rect, buf, size), "CreateAlphaTexture");
-    return { bounds, width, height, bytesPerPixel, data: this.abi.u8.slice(buf, buf + size) };
+    return consume(new Uint8Array(this.abi.memory.buffer, buf, size));
   }
 }

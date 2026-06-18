@@ -53,11 +53,13 @@ export class IUnknown implements Disposable {
 
   release(): number {
     if (this.disposed) return 0;
-    return this.invoke(IUnknownSlot.Release) >>> 0;
+    const refCount = this.invoke(IUnknownSlot.Release) >>> 0;
+    this.disposed = refCount == 0;
+    return refCount;
   }
 
   queryInterface(iid: Guid): IUnknown | null;
-  
+
   queryInterface<T extends IUnknown>(iid: Guid, wrap: (abi: Abi, ptr: number) => T): T | null;
 
   queryInterface<T extends IUnknown>(iid: Guid, wrap?: (abi: Abi, ptr: number) => T): T | IUnknown | null {
@@ -71,8 +73,7 @@ export class IUnknown implements Disposable {
   }
 
   [Symbol.dispose](): void {
-    if (this.disposed) return;
+    this.release();
     this.disposed = true;
-    callMethod(this.abi, this.ptr, IUnknownSlot.Release);
   }
 }

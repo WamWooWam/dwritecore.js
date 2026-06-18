@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { basename } from "node:path";
 
 const SELF = basename(fileURLToPath(import.meta.url));      // run-all.js
-const EXCLUDE = new Set([SELF, "harness.js"]);              // not tests themselves
+const EXCLUDE = new Set([SELF, "harness.js", "bench-renderers.js", "bench-leakprobe.js", "bench-prof.js", "bench-fillloop.js"]); // not tests themselves
 
 const tests = readdirSync("dist/test")
   .filter((f) => f.endsWith(".js") && !EXCLUDE.has(f))

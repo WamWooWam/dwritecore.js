@@ -1,6 +1,7 @@
 import { checkHr } from "../core/com.js";
-import type { Abi } from "../core/abi.js";
+import type { Abi, AllocScope } from "../core/abi.js";
 import { IDWriteFactory as IDWriteFactoryBase } from "./IDWriteFactory.g.js";
+import { IDWriteColorGlyphRunEnumerator } from "./IDWriteColorGlyphRunEnumerator.js";
 import { IDWriteTextFormat } from "./IDWriteTextFormat.g.js";
 import { IDWriteTextLayout } from "./IDWriteTextLayout.js";
 import { IDWriteFontCollection } from "./IDWriteFontCollection.js";
@@ -15,9 +16,15 @@ import {
   DWRITE_FONT_WEIGHT, DWRITE_FONT_STYLE, DWRITE_FONT_STRETCH,
   DWRITE_FONT_FACE_TYPE, DWRITE_FONT_SIMULATIONS,
   DWRITE_RENDERING_MODE, DWRITE_MEASURING_MODE, DWRITE_PIXEL_GEOMETRY,
+  DWRITE_TEXT_ANTIALIAS_MODE,
   writeGlyphRun, type GlyphRunDesc,
 } from "../core/types.js";
+import { DWRITE_GRID_FIT_MODE } from "../core/enums.g.js";
+import { writeMatrix, type DWRITE_MATRIX } from "../core/structs.g.js";
 import { IDWriteFactory8Slot as Slot } from "../core/slots.g.js";
+
+// Returned by TranslateColorGlyphRun when a run contains no color records.
+const DWRITE_E_NOCOLOR = 0x8898500c | 0;
 
 export interface CustomRenderingParamsOptions {
   gamma?: number;
@@ -25,6 +32,16 @@ export interface CustomRenderingParamsOptions {
   clearTypeLevel?: number;
   pixelGeometry?: DWRITE_PIXEL_GEOMETRY;
   renderingMode?: DWRITE_RENDERING_MODE;
+}
+
+export interface GlyphRunAnalysis2Options {
+  transform?: DWRITE_MATRIX;
+  renderingMode?: DWRITE_RENDERING_MODE;
+  measuringMode?: DWRITE_MEASURING_MODE;
+  gridFitMode?: DWRITE_GRID_FIT_MODE;
+  antialiasMode?: DWRITE_TEXT_ANTIALIAS_MODE;
+  baselineOriginX?: number;
+  baselineOriginY?: number;
 }
 
 export interface CreateTextFormatOptions {
@@ -174,8 +191,8 @@ export class IDWriteFactory extends IDWriteFactoryBase {
       baselineOriginX = 0,
       baselineOriginY = 0,
     } = opts;
-    const runPtr = writeGlyphRun(this.abi, this.abi, run);
     using s = this.abi.scope();
+    const runPtr = writeGlyphRun(this.abi, s, run);
     const out = s.out();
     checkHr(this.invoke(
       Slot.CreateGlyphRunAnalysis,
@@ -189,5 +206,85 @@ export class IDWriteFactory extends IDWriteFactoryBase {
       out,
     ), "CreateGlyphRunAnalysis");
     return IDWriteGlyphRunAnalysis.from(this.abi, this.abi.readPtr(out));
+  }
+
+  // IDWriteFactory2::CreateGlyphRunAnalysis. Unlike the v1 overload above this exposes an explicit
+  // antialias mode, so passing GRAYSCALE yields a 1-byte-per-pixel coverage mask readable via
+  // DWRITE_TEXTURE_ALIASED_1x1 (the v1 overload's ALIASED_1x1 is bilevel; its natural modes force
+  // the 3-byte CLEARTYPE_3x1 subpixel texture instead). Scale rides in `transform`; there is no
+  // pixelsPerDip parameter.
+  createGlyphRunAnalysis2(run: GlyphRunDesc, opts: GlyphRunAnalysis2Options = {}): IDWriteGlyphRunAnalysis {
+    using s = this.abi.scope();
+    return this.glyphRunAnalysis2(s, writeGlyphRun(this.abi, s, run), opts);
+  }
+
+  // Same as createGlyphRunAnalysis2 but takes a native DWRITE_GLYPH_RUN* directly (e.g. the pointer a
+  // text renderer is handed in its DrawGlyphRun callback). A run already resident in wasm thus skips
+  // the JS->wasm round-trip of its glyph indices/advances/offsets entirely - which for a renderer
+  // hot loop is the bulk of the per-run JS cost.
+  createGlyphRunAnalysis2FromPtr(glyphRunPtr: number, opts: GlyphRunAnalysis2Options = {}): IDWriteGlyphRunAnalysis {
+    using s = this.abi.scope();
+    return this.glyphRunAnalysis2(s, glyphRunPtr, opts);
+  }
+
+  private glyphRunAnalysis2(s: AllocScope, runPtr: number, opts: GlyphRunAnalysis2Options): IDWriteGlyphRunAnalysis {
+    const {
+      transform,
+      renderingMode = DWRITE_RENDERING_MODE.NATURAL_SYMMETRIC,
+      measuringMode = DWRITE_MEASURING_MODE.NATURAL,
+      gridFitMode = DWRITE_GRID_FIT_MODE.DEFAULT,
+      antialiasMode = DWRITE_TEXT_ANTIALIAS_MODE.GRAYSCALE,
+      baselineOriginX = 0,
+      baselineOriginY = 0,
+    } = opts;
+    const transformPtr = transform ? writeMatrix(this.abi, s, transform) : 0;
+    const out = s.out();
+    checkHr(this.invoke(
+      Slot.CreateGlyphRunAnalysis2,
+      runPtr,
+      transformPtr,
+      renderingMode,
+      measuringMode,
+      gridFitMode,
+      antialiasMode,
+      baselineOriginX,
+      baselineOriginY,
+      out,
+    ), "CreateGlyphRunAnalysis2");
+    return IDWriteGlyphRunAnalysis.from(this.abi, this.abi.readPtr(out));
+  }
+
+  // IDWriteFactory2::TranslateColorGlyphRun, but tolerant of monochrome runs: returns null on
+  // DWRITE_E_NOCOLOR instead of throwing, so callers can use it to detect whether a run carries
+  // color records. Takes a native DWRITE_GLYPH_RUN* (and optional description*) directly, matching
+  // what a text renderer receives in its DrawGlyphRun callback.
+  tryTranslateColorGlyphRun(
+    baselineOriginX: number,
+    baselineOriginY: number,
+    glyphRunPtr: number,
+    measuringMode: DWRITE_MEASURING_MODE,
+    opts: {
+      glyphRunDescriptionPtr?: number;
+      transform?: DWRITE_MATRIX;
+      colorPaletteIndex?: number;
+    } = {},
+  ): IDWriteColorGlyphRunEnumerator | null {
+    const { glyphRunDescriptionPtr = 0, transform, colorPaletteIndex = 0 } = opts;
+    using s = this.abi.scope();
+    const transformPtr = transform ? writeMatrix(this.abi, s, transform) : 0;
+    const out = s.out();
+    const hr = this.invoke(
+      Slot.TranslateColorGlyphRun,
+      baselineOriginX, baselineOriginY,
+      glyphRunPtr,
+      glyphRunDescriptionPtr,
+      measuringMode,
+      transformPtr,
+      colorPaletteIndex,
+      out,
+    );
+    if (hr === DWRITE_E_NOCOLOR) return null;
+    checkHr(hr, "TranslateColorGlyphRun");
+    return IDWriteColorGlyphRunEnumerator.from(this.abi, this.abi.readPtr(out));
   }
 }

@@ -34,8 +34,25 @@ export class Abi {
     if (typeof exports.DWriteCreateFactory !== "function") throw new Error("module does not export `DWriteCreateFactory`");
   }
 
-  get dv(): DataView { return new DataView(this.memory.buffer); }
-  get u8(): Uint8Array { return new Uint8Array(this.memory.buffer); }
+  // DataView/Uint8Array over wasm linear memory, cached across calls. WebAssembly.Memory.grow()
+  // replaces (detaches) the backing ArrayBuffer, so we rebuild only when the buffer identity changes;
+  // otherwise every readU32/writeF32/etc. - of which a glyph hot loop does thousands - would allocate
+  // a throwaway view. The `.buffer` identity check is cheap and detects growth precisely.
+  private _dv: DataView | null = null;
+  private _u8: Uint8Array | null = null;
+
+  get dv(): DataView {
+    const buf = this.memory.buffer;
+    let dv = this._dv;
+    if (dv === null || dv.buffer !== buf) this._dv = dv = new DataView(buf);
+    return dv;
+  }
+  get u8(): Uint8Array {
+    const buf = this.memory.buffer;
+    let u8 = this._u8;
+    if (u8 === null || u8.buffer !== buf) this._u8 = u8 = new Uint8Array(buf);
+    return u8;
+  }
 
   
   alloc(size: number): number {

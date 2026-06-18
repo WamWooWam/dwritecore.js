@@ -35,6 +35,9 @@ export abstract class ComObject implements Disposable {
   }
 
   protected abstract handlers(): Function[];
+
+  protected onRef(): void { }
+  protected onRelease(): void { }
   protected dispose(): void { }
 
   private static sharedVtable(abi: Abi, desc: ComInterfaceDescriptor): SharedVtable {
@@ -69,10 +72,14 @@ export abstract class ComObject implements Disposable {
   private dispatch(slot: number, args: number[]): number | void {
     switch (slot) {
       case 0: return this.queryInterface(args[1]!, args[2]!);
-      case 1: return ++this.refCount;
+      case 1: {
+        this.onRef();
+        return ++this.refCount;
+      }
       case 2: {
         const n = --this.refCount;
         if (n <= 0) this.cleanup();
+        this.onRelease();
         return Math.max(0, n);
       }
       default:
