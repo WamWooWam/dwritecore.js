@@ -4,7 +4,7 @@ import { buildEnvImports, type EnvImportOptions } from "./imports.js";
 type DirectWriteInstance = WebAssembly.Instance & { exports: WasmExports }
 
 export interface LoadBrowserOptions extends EnvImportOptions {
-  wasm: string | URL | Response | Promise<Response> | BufferSource;
+  wasm: string | URL | Response | Promise<Response> | BufferSource | WebAssembly.Module;
   // A WASI preview1 import object (e.g. from @bjorn3/browser_wasi_shim).
   wasiImport: WebAssembly.ModuleImports;
   initialize?: (instance: DirectWriteInstance) => void;
@@ -20,11 +20,16 @@ export async function loadBrowser(opts: LoadBrowserOptions): Promise<{ abi: Abi;
   let source = opts.wasm;
   if (typeof source === "string" || source instanceof URL) source = fetch(source);
 
-  const result = source instanceof Response || source instanceof Promise
-    ? await WebAssembly.instantiateStreaming(source, imports)
-    : await WebAssembly.instantiate(source as BufferSource, imports);
+  let instance: WebAssembly.Instance;
+  if (source instanceof WebAssembly.Module) {
+    instance = await WebAssembly.instantiate(source, imports);
+  } else {
+    const result = source instanceof Response || source instanceof Promise
+      ? await WebAssembly.instantiateStreaming(source, imports)
+      : await WebAssembly.instantiate(source as BufferSource, imports);
+    instance = result.instance;
+  }
 
-  const { instance } = result;
   const exports = { ...instance.exports as unknown as WasmExports, _start() { } };
 
   if (opts.initialize) opts.initialize({ ...instance, exports });

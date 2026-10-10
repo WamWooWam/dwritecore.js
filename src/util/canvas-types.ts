@@ -22,6 +22,7 @@ export interface Context2DLike {
 
   fillStyle: string | unknown; // canvas gradient / pattern, or a CSS colour string
   fillRect(x: number, y: number, width: number, height: number): void;
+  clearRect(x: number, y: number, width: number, height: number): void;
 
   drawImage(image: unknown, x: number, y: number): void;
   drawImage(image: unknown, x: number, y: number, w: number, h: number): void;

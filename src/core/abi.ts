@@ -34,10 +34,6 @@ export class Abi {
     if (typeof exports.DWriteCreateFactory !== "function") throw new Error("module does not export `DWriteCreateFactory`");
   }
 
-  // DataView/Uint8Array over wasm linear memory, cached across calls. WebAssembly.Memory.grow()
-  // replaces (detaches) the backing ArrayBuffer, so we rebuild only when the buffer identity changes;
-  // otherwise every readU32/writeF32/etc. - of which a glyph hot loop does thousands - would allocate
-  // a throwaway view. The `.buffer` identity check is cheap and detects growth precisely.
   private _dv: DataView | null = null;
   private _u8: Uint8Array | null = null;
 

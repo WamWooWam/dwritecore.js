@@ -1,0 +1,8 @@
+[
+  { "name": "export.memory",                   "export": "memory",                   "root": true },
+  { "name": "export._initialize",              "export": "_initialize",              "root": true },
+  { "name": "export.malloc",                   "export": "malloc",                   "root": true },
+  { "name": "export.free",                     "export": "free",                     "root": true },
+  { "name": "export.__indirect_function_table","export": "__indirect_function_table","root": true },
+  { "name": "DWriteCreateFactory",             "export": "DWriteCreateFactory",       "root": true }
+]

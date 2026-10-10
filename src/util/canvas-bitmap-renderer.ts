@@ -222,7 +222,8 @@ export class CanvasBitmapTextRenderer extends TextRendererBase {
                     tile[d + c + 6] = (cov[s + c + 6]! << 24) | base;
                     tile[d + c + 7] = (cov[s + c + 7]! << 24) | base;
                 }
-                for (; c < w; c++) tile[d + c] = (cov[s + c]! << 24) | base;
+                for (; c < w; c++)
+                    tile[d + c] = (cov[s + c]! << 24) | base;
             }
         } else {
             // Colour carries its own alpha (rgba fill): fold it into coverage. Rarer; left rolled.
@@ -267,7 +268,6 @@ export class CanvasBitmapTextRenderer extends TextRendererBase {
         oc.restore();
     }
 
-    // Axis-aligned user-space box covering the device tile, so the fill spans the whole mask.
     private userBounds(m: DWRITE_MATRIX, b: RECT): { x: number; y: number; w: number; h: number } {
         const det = m.m11 * m.m22 - m.m21 * m.m12 || 1;
         const toUser = (px: number, py: number): [number, number] => {
@@ -331,6 +331,7 @@ export class CanvasBitmapTextRenderer extends TextRendererBase {
         if (this.offscreen && this.offscreenContext) {
             const tile = this.ensureTile(w, h);
             this.recoverColor(tile, this.tileStride, overBlack, white.data, white.width, left, top, w, h);
+            this.offscreenContext.clearRect(0, 0, w + 1, h + 1);
             this.offscreenContext.putImageData(this.tileImg!, 0, 0, 0, 0, w, h);
             this.ctx.drawImage(this.offscreen, 0, 0, w, h, left, top, w, h);
             return;

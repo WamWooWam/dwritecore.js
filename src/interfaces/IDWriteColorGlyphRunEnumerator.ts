@@ -19,10 +19,18 @@ export class IDWriteColorGlyphRunEnumerator extends IDWriteColorGlyphRunEnumerat
     return readColorGlyphRun(this.abi, this.abi.readPtr(out));
   }
   
-  getCurrentRun1(): DWRITE_COLOR_GLYPH_RUN1 {
+  getCurrentRun1(): DWRITE_COLOR_GLYPH_RUN1 & { ptr: number } {
     using s = this.abi.scope();
     const out = s.allocZeroed(4);
     checkHr(this.invoke(Slot.GetCurrentRun1, out), "GetCurrentRun1");
-    return readColorGlyphRun1(this.abi, this.abi.readPtr(out));
+    const ptr = this.abi.readPtr(out);
+    return { ...readColorGlyphRun1(this.abi, ptr), ptr };
+  }
+
+  currentRunFormat(): number {
+    using s = this.abi.scope();
+    const out = s.allocZeroed(4);
+    checkHr(this.invoke(Slot.GetCurrentRun1, out), "GetCurrentRun1");
+    return this.abi.readU32(this.abi.readPtr(out) + 64);
   }
 }

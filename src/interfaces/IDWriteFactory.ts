@@ -16,7 +16,7 @@ import {
   DWRITE_FONT_WEIGHT, DWRITE_FONT_STYLE, DWRITE_FONT_STRETCH,
   DWRITE_FONT_FACE_TYPE, DWRITE_FONT_SIMULATIONS,
   DWRITE_RENDERING_MODE, DWRITE_MEASURING_MODE, DWRITE_PIXEL_GEOMETRY,
-  DWRITE_TEXT_ANTIALIAS_MODE,
+  DWRITE_TEXT_ANTIALIAS_MODE, DWRITE_PAINT_FEATURE_LEVEL, DWRITE_GLYPH_IMAGE_FORMATS_ALL,
   writeGlyphRun, type GlyphRunDesc,
 } from "../core/types.js";
 import { DWRITE_GRID_FIT_MODE } from "../core/enums.g.js";
@@ -208,20 +208,11 @@ export class IDWriteFactory extends IDWriteFactoryBase {
     return IDWriteGlyphRunAnalysis.from(this.abi, this.abi.readPtr(out));
   }
 
-  // IDWriteFactory2::CreateGlyphRunAnalysis. Unlike the v1 overload above this exposes an explicit
-  // antialias mode, so passing GRAYSCALE yields a 1-byte-per-pixel coverage mask readable via
-  // DWRITE_TEXTURE_ALIASED_1x1 (the v1 overload's ALIASED_1x1 is bilevel; its natural modes force
-  // the 3-byte CLEARTYPE_3x1 subpixel texture instead). Scale rides in `transform`; there is no
-  // pixelsPerDip parameter.
   createGlyphRunAnalysis2(run: GlyphRunDesc, opts: GlyphRunAnalysis2Options = {}): IDWriteGlyphRunAnalysis {
     using s = this.abi.scope();
     return this.glyphRunAnalysis2(s, writeGlyphRun(this.abi, s, run), opts);
   }
 
-  // Same as createGlyphRunAnalysis2 but takes a native DWRITE_GLYPH_RUN* directly (e.g. the pointer a
-  // text renderer is handed in its DrawGlyphRun callback). A run already resident in wasm thus skips
-  // the JS->wasm round-trip of its glyph indices/advances/offsets entirely - which for a renderer
-  // hot loop is the bulk of the per-run JS cost.
   createGlyphRunAnalysis2FromPtr(glyphRunPtr: number, opts: GlyphRunAnalysis2Options = {}): IDWriteGlyphRunAnalysis {
     using s = this.abi.scope();
     return this.glyphRunAnalysis2(s, glyphRunPtr, opts);
@@ -254,10 +245,6 @@ export class IDWriteFactory extends IDWriteFactoryBase {
     return IDWriteGlyphRunAnalysis.from(this.abi, this.abi.readPtr(out));
   }
 
-  // IDWriteFactory2::TranslateColorGlyphRun, but tolerant of monochrome runs: returns null on
-  // DWRITE_E_NOCOLOR instead of throwing, so callers can use it to detect whether a run carries
-  // color records. Takes a native DWRITE_GLYPH_RUN* (and optional description*) directly, matching
-  // what a text renderer receives in its DrawGlyphRun callback.
   tryTranslateColorGlyphRun(
     baselineOriginX: number,
     baselineOriginY: number,
@@ -278,6 +265,50 @@ export class IDWriteFactory extends IDWriteFactoryBase {
       baselineOriginX, baselineOriginY,
       glyphRunPtr,
       glyphRunDescriptionPtr,
+      measuringMode,
+      transformPtr,
+      colorPaletteIndex,
+      out,
+    );
+    if (hr === DWRITE_E_NOCOLOR) return null;
+    checkHr(hr, "TranslateColorGlyphRun");
+    return IDWriteColorGlyphRunEnumerator.from(this.abi, this.abi.readPtr(out));
+  }
+
+  tryTranslateColorGlyphRun8(
+    baselineOriginX: number,
+    baselineOriginY: number,
+    glyphRunPtr: number,
+    measuringMode: DWRITE_MEASURING_MODE,
+    opts: {
+      glyphRunDescriptionPtr?: number;
+      transform?: DWRITE_MATRIX;
+      desiredGlyphImageFormats?: number;
+      paintFeatureLevel?: DWRITE_PAINT_FEATURE_LEVEL;
+      colorPaletteIndex?: number;
+    } = {},
+  ): IDWriteColorGlyphRunEnumerator | null {
+    const {
+      glyphRunDescriptionPtr = 0,
+      transform,
+      desiredGlyphImageFormats = DWRITE_GLYPH_IMAGE_FORMATS_ALL,
+      paintFeatureLevel = DWRITE_PAINT_FEATURE_LEVEL.COLR_V1,
+      colorPaletteIndex = 0,
+    } = opts;
+    using s = this.abi.scope();
+    
+    const originPtr = s.allocZeroed(8);
+    this.abi.writeF32(originPtr + 0, baselineOriginX);
+    this.abi.writeF32(originPtr + 4, baselineOriginY);
+    const transformPtr = transform ? writeMatrix(this.abi, s, transform) : 0;
+    const out = s.out();
+    const hr = this.invoke(
+      Slot.TranslateColorGlyphRun8,
+      originPtr,
+      glyphRunPtr,
+      glyphRunDescriptionPtr,
+      desiredGlyphImageFormats,
+      paintFeatureLevel,
       measuringMode,
       transformPtr,
       colorPaletteIndex,
